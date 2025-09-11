@@ -1,4 +1,4 @@
-name: Deploy Lambdas on main
+name: Deploy Lambdas & API Gateway
 on:
   push:
     branches:
@@ -6,34 +6,46 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      # primer paso clonar el repositorio
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      # segundo paso configurar AWS CLI con secrets para no exponer el API Key.
-      - name: Configure AWS CLI
-        run: |
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          aws configure set default.region us-east-1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      # tercer paso desplegar Lambda: obtener-productos
-      - name: Deploy obtener-productos Lambda
-        run: |
-          cd lambdas/obtener-productos
-          zip -r function.zip .
-          aws lambda update-function-code \
-            --function-name obtener-productos \
-            --zip-file fileb://function.zip
-          cd ../../
-      # cuarto paso desplegar Lambda: grabar-contacto
-      - name: Deploy grabar-contacto Lambda
-        run: |
-          cd lambdas/grabar-contacto
-          zip -r function.zip .
-          aws lambda update-function-code \
-            --function-name grabar-contacto \
-            --zip-file fileb://function.zip
-          cd ../../
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    # ---------------- Lambda: obtener-productos ----------------
+    - name: Package Lambda obtener-productos
+      run: |
+        cd lambda/obtener-productos
+        zip -r ../../obtener-productos-package.zip .
+    - name: Deploy Lambda obtener-productos
+      run: |
+        aws lambda update-function-code \
+          --function-name obtener-productos \
+          --zip-file fileb://obtener-productos-package.zip
+    - name: Update API Gateway integration obtener-productos
+      run: |
+        aws apigatewayv2 update-integration \
+          --api-id ${{ secrets.API_ID }} \
+          --integration-id ${{ secrets.INTEGRATION_OBTENERPRODUCTO_ID }} \
+          --integration-uri ${{ secrets.LAMBDA_OBTENERPRODUCTO_ARN }}
+    # ---------------- Lambda: grabar-contacto ----------------
+    - name: Package Lambda grabar-contacto
+      run: |
+        cd lambda/grabar-contacto
+        zip -r ../../grabar-contacto-package.zip .
+    - name: Deploy Lambda grabar-contacto
+      run: |
+        aws lambda update-function-code \
+          --function-name grabar-contacto \
+          --zip-file fileb://grabar-contacto-package.zip
+    - name: Update API Gateway integration grabar-contacto
+      run: |
+        aws apigatewayv2 update-integration \
+          --api-id ${{ secrets.API_ID }} \
+          --integration-id ${{ secrets.INTEGRATION_GRABARCONTACTO_ID }} \
+          --integration-uri ${{ secrets.LAMBDA_GRABARCONTACTO_ARN }}

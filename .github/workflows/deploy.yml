@@ -20,7 +20,7 @@ jobs:
     # ---------------- Lambda: obtener-productos ----------------
     - name: Package Lambda obtener-productos
       run: |
-        cd lambda/obtener-productos
+        cd lambdas/obtener-productos
         zip -r ../../obtener-productos-package.zip .
     - name: Deploy Lambda obtener-productos
       run: |
@@ -36,7 +36,7 @@ jobs:
     # ---------------- Lambda: grabar-contacto ----------------
     - name: Package Lambda grabar-contacto
       run: |
-        cd lambda/grabar-contacto
+        cd lambdas/grabar-contacto
         zip -r ../../grabar-contacto-package.zip .
     - name: Deploy Lambda grabar-contacto
       run: |

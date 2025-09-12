@@ -1,13 +1,16 @@
 name: CI/CD Lambdas & API Gateway
+run: echo "La rama actual es ${{ github.ref_name }} - ${{ github.ref }}"
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
-      - main
+      - develop  # PR a develop -> solo validaciones
+  push:
+    branches:
+      - main     # Merge a main -> solo deploy
 jobs:
+  # ================== VALIDACIÓN ==================
   validate:
+    if: github.event_name == 'pull_request' && github.base_ref == 'develop'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,10 +22,10 @@ jobs:
         with:
           languages: javascript
       - uses: github/codeql-action/analyze@v3
+  # ================== DESPLIEGUE ==================
   deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: validate
     steps:
       - uses: actions/checkout@v3
       - name: Verificar secrets
@@ -35,8 +38,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      # Aquí tus pasos de Lambda y API Gateway
+          aws-region: us-east-1      
       # ---------------- Lambda: obtener-productos ----------------
       - name: Package Lambda obtener-productos
         run: |

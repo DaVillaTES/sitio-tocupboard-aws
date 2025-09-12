@@ -1,19 +1,14 @@
 name: CI/CD Lambdas & API Gateway
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
   push:
     branches:
-      - main
+      - main  
 permissions:
   contents: read
   pull-requests: write
-  id-token: write
   actions: read
 jobs:
-  # ================== VALIDACIÓN EN PR ==================
+  # ================== VALIDACIÓN ==================
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +20,7 @@ jobs:
       - name: Lint Lambda obtener-productos
         run: |
           cd lambdas/obtener-productos
-          eslint . || true  
+          eslint . || true
       - name: Lint Lambda grabar-contacto
         run: |
           cd lambdas/grabar-contacto
@@ -40,16 +35,23 @@ jobs:
           languages: javascript
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-  # ================== DESPLIEGUE A MAIN ==================
+  # ================== DESPLIEGUE ==================
   deploy:
-    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs: validate
     permissions:
-      contents: write        # necesario para push o acciones que modifiquen el repo
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      # --------- Verificar secrets ---------
+      - name: Check AWS secrets
+        run: |
+          if [ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "ERROR: AWS secrets no disponibles, cancelando deploy"
+            exit 1
+          fi
+      # --------- Configurar AWS ---------
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:

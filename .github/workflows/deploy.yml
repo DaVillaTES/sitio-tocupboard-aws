@@ -37,7 +37,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
   # ================== DESPLIEGUE A MAIN ==================
   deploy:
-    if: github.ref_name == 'main'
+    if: github.ref_name == 'main' || github.base_ref == 'main'
     runs-on: ubuntu-latest
     needs: validate
     steps:
@@ -58,7 +58,8 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name obtener-productos \
-            --zip-file fileb://obtener-productos-package.zip
+            --zip-file fileb://obtener-productos-package.zip \
+            --debug
       - name: Update API Gateway integration obtener-productos
         run: |
           aws apigatewayv2 update-integration \
@@ -74,7 +75,8 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name grabar-contacto \
-            --zip-file fileb://grabar-contacto-package.zip
+            --zip-file fileb://grabar-contacto-package.zip \
+            --debug
       - name: Update API Gateway integration grabar-contacto
         run: |
           aws apigatewayv2 update-integration \

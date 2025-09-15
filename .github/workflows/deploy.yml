@@ -2,10 +2,10 @@ name: CI/CD Lambdas & API Gateway
 on:
   pull_request:
     branches:
-      - develop  # PR a develop -> solo validaciones
+      - develop
   push:
     branches:
-      - main     # Merge a main -> solo deploy
+      - main
 jobs:
   # ================== VALIDACIÓN ==================
   validate:

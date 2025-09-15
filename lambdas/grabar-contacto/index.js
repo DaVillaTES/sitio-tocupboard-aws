@@ -8,7 +8,7 @@ exports.handler = async (event) => {
     // Aquí solo simulamos que lo guardamos en BD
     const respuesta = {
         status: "ok",
-        mensaje: `Formulario recibido de ${nombre}, correo: ${correo}. <br> Comentario: ${mensaje}`
+        mensaje: `De: ${nombre}\ncorreo: ${correo}\nComentario: ${mensaje}`
     };
 
     return {

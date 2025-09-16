@@ -1,6 +1,6 @@
-name: OWASP ZAP Baseline Scan (develop)
+name: ZAP Baseline Scan
 on:
-  push:
+  pull_request:
     branches:
       - develop
 jobs:
@@ -9,16 +9,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Run OWASP ZAP Baseline Scan
+      - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.9.0
         with:
-          target: "https://api.tocupboard-dv.click"
-          cmd_options: "-a"
-          format: "html"
-          fail_on_error: "false"
-      - name: Upload ZAP report (artifact)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: ./zap_report.html
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: 'https://api.tocupboard-dv.click/obtener-productos'
+          rules_file_name: 'zap_rules.json'
+          fail_on_error: 'true'
+          cmd_options: >
+            -config ssl.insecure=true
+            -config replacer.full_list=[{"description":"API Key","enabled":true,"matchtype":"REQ_HEADER","matchregex":false,"matchstring":"x-api-key","replacement":"${{ secrets.AWS_API_KEY }}"}]
+            -config globalexcludeurl.url_list=.*logout.*

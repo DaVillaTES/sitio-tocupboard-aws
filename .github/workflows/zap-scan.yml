@@ -1,0 +1,24 @@
+name: OWASP ZAP Baseline Scan (develop)
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.9.0
+        with:
+          target: "https://api.tocupboard-dv.click"
+          cmd_options: "-a"
+          format: "html"
+          fail_on_error: "false"
+      - name: Upload ZAP report (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: ./zap_report.html
